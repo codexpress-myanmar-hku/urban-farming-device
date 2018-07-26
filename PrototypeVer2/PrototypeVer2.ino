@@ -8,6 +8,8 @@
 #include <DallasTemperature.h>
 #include <dht.h>//library for dht11(air temperature and humidity)
 #include <SoftwareSerial.h>//library for esp8266
+
+
 #define ONE_WIRE_BUS 12
 #define RX 10
 #define TX 11
@@ -15,13 +17,13 @@
 #define soil_sign A0
 #define VT_PIN A1 
 #define AT_PIN A2
+#define PERIOD 10000// Every 30 minutes = 1800000
 dht DHT11;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+
 //Define variable for timing
 unsigned long startMillis;  //some global variables available anywhere in the program
-unsigned long currentMillis;
-const unsigned long period = 10000; 
 
 //settings for wifi connection to thingspeak
 /*String AP = "NETGEAR26";       // CHANGE ME
@@ -37,44 +39,54 @@ int countTrueCommand;
 int countTimeCommand; 
 boolean found = false; 
 int valSensor = 1;
+
 SoftwareSerial Serial1(RX,TX); 
 WiFiEspClient espClient;
 PubSubClient client(espClient);
  
 void setup()
 {
-   Serial.begin(9600); 
-   Serial1.begin(9600);
-   //espwifi setup
-   WiFi.init(&Serial1);
-   // check for the presence of the shield
-   if (WiFi.status() == WL_NO_SHIELD) {
-       Serial.println("WiFi shield not present");
-       // don't continue
-       while (true);
+  Serial.begin(9600); 
+  Serial1.begin(9600);
+   
+  //espwifi setup
+  WiFi.init(&Serial1);
+  
+  // check for the presence of the shield
+  if (WiFi.status() == WL_NO_SHIELD) {
+    Serial.println("WiFi shield not present");
+    
+    // don't continue
+    while (true);
   }
+
+  
   // attempt to connect to WiFi network
-    while ( status != WL_CONNECTED) {
-        Serial.print("Attempting to connect to WPA SSID: ");
-        Serial.println(ssid);
-         // Connect to WPA/WPA2 network
- 
-        status = WiFi.begin(ssid, pass);
-    }
-     // you're connected now, so print out the data
-    Serial.println("You're connected to the network");
+  while ( status != WL_CONNECTED) {
+      Serial.print("Attempting to connect to WPA SSID: ");
+      Serial.println(ssid);
+       // Connect to WPA/WPA2 network
+
+      status = WiFi.begin(ssid, pass);
+  }
+
+  
+  // you're connected now, so print out the data
+  Serial.println("You're connected to the network");
 
     
-    //connect to MQTT server
-    client.setServer("192.168.1.24", 1883);
-    client.setCallback(callback);
+  //connect to MQTT server
+  client.setServer("192.168.1.24", 1883);
+  client.setCallback(callback);
   
-    startMillis = millis();
 
-    //sensors setting
-    //pinMode(relay_pin,OUTPUT);
-    pinMode(soil_sign, INPUT); 
-    sensors.begin();//begin the soil temperature sensors
+  startMillis = millis();
+
+
+  //sensors setting
+  //pinMode(relay_pin,OUTPUT);
+  pinMode(soil_sign, INPUT); 
+  sensors.begin();//begin the soil temperature sensors
 }
 
 void loop()
@@ -100,19 +112,19 @@ void loop()
 
   //Printing data for debug on serial monitor  
   sensors.requestTemperatures();
-  Serial.print("Soil temperature: ");
+  Serial.print(F("Soil temperature: "));
   Serial.println(sensors.getTempCByIndex(0));
-  Serial.print("Moisture: ");
+  Serial.print(F("Moisture: "));
   Serial.println(sensorValue);
-  Serial.print("DHT Temperature: ");
+  Serial.print(F("DHT Temperature: "));
   Serial.println(tem);
-  Serial.print("DHT Humidity: ");
+  Serial.print(F("DHT Humidity: "));
   Serial.println(hum);
-  Serial.print("Volts: "); 
+  Serial.print(F("Volts: ")); 
   Serial.print(voltage, 3);
-  Serial.print("\tAmps: ");
+  Serial.print(F("\tAmps: "));
   Serial.print(current,3);
-  Serial.print("\tWatts: ");
+  Serial.print(F("\tWatts: "));
   Serial.println(watts,3);
   Serial.println();
 
@@ -120,30 +132,30 @@ void loop()
   //Combine data into one string in the format that (AirTemp AirHum SoilMoi SoilTemp Volt Current Watts)
   String str=String(tem)+","+String(hum)+","+String(sensorValue)+","+String(sensors.getTempCByIndex(0))
             +","+String(voltage)+","+String(current)+","+String(watts);
+
   Serial.println(str);
   char msg[50];
   str.toCharArray(msg,50);
-  //timing
-  currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
-  if (currentMillis - startMillis >= period)  //test whether the period has elapsed
+
+  if (millis() - startMillis >= PERIOD || millis() <= PERIOD )  //test whether the period has elapsed
   {
     publishing(msg);
-    startMillis = currentMillis;  //IMPORTANT to save the start time of the current LED state.
+    
+    //sending data to thingspeak.
+    senddata(tem,"field1");
+    senddata(hum,"field2");
+    senddata(sensorValue,"field3");
+    senddata(sensors.getTempCByIndex(0),"field4");
+    senddata(current,"field5");
+    senddata(voltage,"field6");
+    sendCommand("AT+CIPSTATUS",8,"STATUS");
+    sendCommand("AT+CIPCLOSE",5,"OK");
+
+    startMillis = millis();  //IMPORTANT to save the start time of the current LED state.
   }
 
-  
-//sending data to thingspeak.
-  senddata(tem,"field1");
-  senddata(hum,"field2");
-  senddata(sensorValue,"field3");
-  senddata(sensors.getTempCByIndex(0),"field4");
-  senddata(current,"field5");
-  senddata(voltage,"field6");
-  sendCommand("AT+CIPSTATUS",8,"STATUS");
-  sendCommand("AT+CIPCLOSE",5,"OK");
-
-
   client.loop();
+  delay(1000);
  }
 
 
@@ -205,7 +217,7 @@ int sendCommand(String command, int maxTime, char readReplay[]) {
   Serial.print(". Sent ");
   Serial.print(msg);
   Serial.print(" at ");
-  Serial.println(currentMillis);
+  Serial.println(millis());
 
 }
 
