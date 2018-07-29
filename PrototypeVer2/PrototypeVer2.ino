@@ -142,12 +142,19 @@ void loop()
     publishing(msg);
     
     //sending data to thingspeak.
-    senddata(tem,"field1");
-    senddata(hum,"field2");
-    senddata(sensorValue,"field3");
-    senddata(sensors.getTempCByIndex(0),"field4");
-    senddata(current,"field5");
-    senddata(voltage,"field6");
+    Serial.println("Sending data to thingspeak");
+    String getData = "GET /update?api_key="+ API +"&field1="+String(tem)+"&field2="+String(hum)+"&field3="+String(sensorValue)
+                   +"&field4="+String(sensors.getTempCByIndex(0))+"&field5="+String(current)+"&field6"+String(voltage);
+    sendCommand("AT+CIPMUX=1",5,"OK");
+    bool sent=0;
+    int retried=0;
+    while((!sent) &&(retried<5)){       //retry when fail
+      sendCommand("AT+CIPSTART=0,\"TCP\",\""+ HOST +"\","+ PORT,15,"OK");
+      sent=sendCommand("AT+CIPSEND=0," +String(getData.length()+4),4,">");
+      Serial1.println(getData);
+      retried++;
+  }
+  countTrueCommand++;
     sendCommand("AT+CIPSTATUS",8,"STATUS");
     sendCommand("AT+CIPCLOSE",5,"OK");
 
@@ -158,23 +165,6 @@ void loop()
   delay(1000);
  }
 
-
-
-void senddata(float data, String field){
-  Serial.print("sending data:");
-  Serial.println(data);
-  String getData = "GET /update?api_key="+ API +"&"+ field +"="+String(data);
-  sendCommand("AT+CIPMUX=1",5,"OK");
-  bool sent=0;
-  int retried=0;
-  while((!sent) &&(retried<5)){       //retry when fail
-    sendCommand("AT+CIPSTART=0,\"TCP\",\""+ HOST +"\","+ PORT,15,"OK");
-    sent=sendCommand("AT+CIPSEND=0," +String(getData.length()+4),4,">");
-    Serial1.println(getData);
-    retried++;
-  }
-  countTrueCommand++;
-}
 
 
 int sendCommand(String command, int maxTime, char readReplay[]) {
