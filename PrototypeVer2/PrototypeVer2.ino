@@ -104,8 +104,8 @@ void loop()
   int vt_read = analogRead(VT_PIN);
   int at_read = analogRead(AT_PIN);
   int chk = DHT11.read11(DHT11PIN);
-  float tem=DHT11.temperature;
-  float hum=DHT11.humidity;
+  int tem=DHT11.temperature;
+  int hum=DHT11.humidity;
   float voltage = vt_read * (5.0 / 1024.0) * 5.0;
   float current = at_read * (5.0 / 1024.0);
   float watts = voltage * current;
@@ -144,7 +144,7 @@ void loop()
     //sending data to thingspeak.
     Serial.println("Sending data to thingspeak");
     String getData = "GET /update?api_key="+ API +"&field1="+String(tem)+"&field2="+String(hum)+"&field3="+String(sensorValue)
-                   +"&field4="+String(sensors.getTempCByIndex(0))+"&field5="+String(current)+"&field6"+String(voltage);
+                   +"&field4="+String(sensors.getTempCByIndex(0))+"&field5="+String(current)+"&field6="+String(voltage);
     sendCommand("AT+CIPMUX=1",5,"OK");
     bool sent=0;
     int retried=0;
