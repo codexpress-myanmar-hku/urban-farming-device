@@ -28,7 +28,8 @@ unsigned long startMillis;  //some global variables available anywhere in the pr
 //settings for wifi connection to thingspeak
 /*String AP = "NETGEAR26";       // CHANGE ME
 String PASS = "12345678"; // CHANGE ME*/
-int a =0;
+int a=0;
+String deviceID ="3"; //Change it for different device
 char ssid[] = "NETGEAR26"; // your network SSID (name)
 char pass[] = "12345678"; // your network password
 int status = WL_IDLE_STATUS; // the Wifi radio's status
@@ -47,7 +48,7 @@ PubSubClient client(espClient);
 void setup()
 {
   Serial.begin(9600); 
-  Serial1.begin(115200);
+  Serial1.begin(9600);
    
   //espwifi setup
   WiFi.init(&Serial1);
@@ -99,8 +100,8 @@ void loop()
   int vt_read = analogRead(VT_PIN);
   int at_read = analogRead(AT_PIN);
   int chk = DHT11.read11(DHT11PIN);
-  float tem=DHT11.temperature;
-  float hum=DHT11.humidity;
+  int tem=DHT11.temperature;
+  int hum=DHT11.humidity;
   float voltage = vt_read * (5.0 / 1024.0) * 5.0;
   float current = at_read * (5.0 / 1024.0);
   float watts = voltage * current;
@@ -125,7 +126,7 @@ void loop()
 
   
   //Combine data into one string in the format that (AirTemp AirHum SoilMoi SoilTemp Volt Current Watts)
-  String str=String(tem)+","+String(hum)+","+String(sensorValue)+","+String(sensors.getTempCByIndex(0))
+  String str=deviceID+","+String(tem)+","+String(hum)+","+String(sensorValue)+","+String(sensors.getTempCByIndex(0))
             +","+String(voltage)+","+String(current)+","+String(watts);
 
   Serial.println(str);
