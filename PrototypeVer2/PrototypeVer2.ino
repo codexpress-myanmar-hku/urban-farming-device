@@ -17,7 +17,7 @@
 #define soil_sign A0
 #define VT_PIN A1 
 #define AT_PIN A2
-#define PERIOD 10000// Every 30 minutes = 1800000
+#define PERIOD 1800000// Every 30 minutes = 1800000
 dht DHT11;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -91,12 +91,7 @@ void setup()
 
 void loop()
 { 
-  //reconnect wifi if disconnect
-  checkwifi();
-  //reconnect mqtt if disconnect
-  if (!client.connected()) {
-    reconnect();
-  }
+
   Serial.print("Wifi status: ");
   Serial.println(WiFi.status());
   //Getting all sensors values
@@ -104,8 +99,8 @@ void loop()
   int vt_read = analogRead(VT_PIN);
   int at_read = analogRead(AT_PIN);
   int chk = DHT11.read11(DHT11PIN);
-  int tem=DHT11.temperature;
-  int hum=DHT11.humidity;
+  float tem=DHT11.temperature;
+  float hum=DHT11.humidity;
   float voltage = vt_read * (5.0 / 1024.0) * 5.0;
   float current = at_read * (5.0 / 1024.0);
   float watts = voltage * current;
@@ -139,12 +134,19 @@ void loop()
 
   if (millis() - startMillis >= PERIOD || millis() <= PERIOD )  //test whether the period has elapsed
   {
-    publishing(msg);
+    //reconnect wifi if disconnect
+    checkwifi();
+    //reconnect mqtt if disconnect
+    if (!client.connected()) {
+       reconnect();
+    }
+    if(client.connected())
+        publishing(msg);
     
     //sending data to thingspeak.
     Serial.println("Sending data to thingspeak");
     String getData = "GET /update?api_key="+ API +"&field1="+String(tem)+"&field2="+String(hum)+"&field3="+String(sensorValue)
-                   +"&field4="+String(sensors.getTempCByIndex(0))+"&field5="+String(current)+"&field6="+String(voltage);
+                   +"&field4="+String(sensors.getTempCByIndex(0))+"&field5="+String(current)+"&field6"+String(voltage);
     sendCommand("AT+CIPMUX=1",5,"OK");
     bool sent=0;
     int retried=0;
@@ -214,7 +216,8 @@ int sendCommand(String command, int maxTime, char readReplay[]) {
 
 void reconnect() {
   // Loop until we're reconnected
-  while (!client.connected()) {
+  int tried=0;
+  while (!client.connected()&&tried<3) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect, just a name to identify the client
     if (client.connect("UNO","pi","codexpress")) {
@@ -228,6 +231,7 @@ void reconnect() {
       if(client.state()==-3){
         checkwifi();
       }
+      tried++;
       delay(3000);
     }
   }
