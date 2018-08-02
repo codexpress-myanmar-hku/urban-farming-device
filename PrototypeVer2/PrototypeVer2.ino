@@ -29,11 +29,15 @@ unsigned long startMillis;  //some global variables available anywhere in the pr
 /*String AP = "NETGEAR26";       // CHANGE ME
 String PASS = "12345678"; // CHANGE ME*/
 int a=0;
-String deviceID ="3"; //Change it for different device
+
+//Things need to change
+int deviceID =3; //Change it for different device
 char ssid[] = "NETGEAR26"; // your network SSID (name)
 char pass[] = "12345678"; // your network password
 int status = WL_IDLE_STATUS; // the Wifi radio's status
 String API = "FP2IDWVXL5QLDD4U";   // CHANGE ME FOR THINGSPEAK
+
+
 String HOST = "api.thingspeak.com";
 String PORT = "80";
 int countTrueCommand;
@@ -47,6 +51,20 @@ PubSubClient client(espClient);
  
 void setup()
 {
+  switch(deviceID){
+    case(1):API="0A55BE5XWOL0CFLQ";
+            break;
+    case(2):API="V5PDEOU4FCKNXMWA";
+            break;
+    case(3):API="EDNCI5CQ5L7EMLI1";
+            break;
+    case(4):API="WNELV7ZAGZER6I77";
+            break;
+    case(5):API="IOLS5N1MKPMDRSYQ";
+            break;
+    case(6):API="G0POJ6URCNKC40X8";
+            break;
+  }
   Serial.begin(9600); 
   Serial1.begin(9600);
    
@@ -126,7 +144,7 @@ void loop()
 
   
   //Combine data into one string in the format that (AirTemp AirHum SoilMoi SoilTemp Volt Current Watts)
-  String str=deviceID+","+String(tem)+","+String(hum)+","+String(sensorValue)+","+String(sensors.getTempCByIndex(0))
+  String str=String(deviceID)+","+String(tem)+","+String(hum)+","+String(sensorValue)+","+String(sensors.getTempCByIndex(0))
             +","+String(voltage)+","+String(current)+","+String(watts);
 
   Serial.println(str);
