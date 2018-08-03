@@ -31,7 +31,7 @@ String PASS = "12345678"; // CHANGE ME*/
 int a=0;
 
 //Things need to change
-int deviceID =3; //Change it for different device
+int deviceID =6; //Change it for different device
 char ssid[] = "NETGEAR26"; // your network SSID (name)
 char pass[] = "12345678"; // your network password
 int status = WL_IDLE_STATUS; // the Wifi radio's status
@@ -151,7 +151,7 @@ void loop()
   char msg[50];
   str.toCharArray(msg,50);
 
-  if (millis() - startMillis >= PERIOD || millis() <= PERIOD )  //test whether the period has elapsed
+  if (millis() - startMillis >= PERIOD || millis() <= 300000 )  //test whether the period has elapsed
   {
     //reconnect wifi if disconnect
     checkwifi();
@@ -165,7 +165,7 @@ void loop()
     //sending data to thingspeak.
     Serial.println("Sending data to thingspeak");
     String getData = "GET /update?api_key="+ API +"&field1="+String(tem)+"&field2="+String(hum)+"&field3="+String(sensorValue)
-                   +"&field4="+String(sensors.getTempCByIndex(0))+"&field5="+String(current)+"&field6"+String(voltage);
+                   +"&field4="+String(sensors.getTempCByIndex(0))+"&field5="+String(current)+"&field6="+String(voltage);
     sendCommand("AT+CIPMUX=1",5,"OK");
     bool sent=0;
     int retried=0;
