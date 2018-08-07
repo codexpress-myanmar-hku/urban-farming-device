@@ -31,7 +31,7 @@ String PASS = "12345678"; // CHANGE ME*/
 int a=0;
 
 //Things need to change
-int deviceID =6; //Change it for different device
+int deviceID =3; //Change it for different device
 char ssid[] = "NETGEAR26"; // your network SSID (name)
 char pass[] = "12345678"; // your network password
 int status = WL_IDLE_STATUS; // the Wifi radio's status
@@ -56,7 +56,7 @@ void setup()
             break;
     case(2):API="V5PDEOU4FCKNXMWA";
             break;
-    case(3):API="EDNCI5CQ5L7EMLI1";
+    case(3):API="UYUELD0XL7CKMFZU";
             break;
     case(4):API="WNELV7ZAGZER6I77";
             break;
