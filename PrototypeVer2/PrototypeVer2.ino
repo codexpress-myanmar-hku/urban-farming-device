@@ -32,8 +32,8 @@ int a=0;
 
 //Things need to change
 int deviceID =3; //Change it for different device
-char ssid[] = "NETGEAR26"; // your network SSID (name)
-char pass[] = "12345678"; // your network password
+char ssid[] = ""; // your network SSID (name)
+char pass[] = ""; // your network password
 int status = WL_IDLE_STATUS; // the Wifi radio's status
 String API = "FP2IDWVXL5QLDD4U";   // CHANGE ME FOR THINGSPEAK
 
